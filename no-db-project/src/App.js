@@ -17,8 +17,12 @@ import VampireList from './components/VampireList.js';
 
 import Draculipsum from './components/Draculipsum.js';
                         // ****extra component (2)****
+                        // ****external api (2)****
 
 import NewVampire from './components/NewVampire.js';
+
+import FeaturedMedia from './components/FeaturedMedia';
+                        // ****external api (2)****
 
 
 class App extends Component {
@@ -31,14 +35,12 @@ class App extends Component {
     inputValue: '',
   };
 
-  componentWillMount(){
-    axios.get('http://localhost:3005/vampires?search=')
+  componentDidMount(){
+    axios.get('http://localhost:3005/vampires')
       .then(response => {
         console.log(response);
         this.setState({
-          vampires: [
-            ...response.data
-          ],
+          vampires: response.data
         })
       })
       .catch(err => console.warn(err));
@@ -54,23 +56,24 @@ class App extends Component {
 
     
   render(){  
-    const vampireList = this.state.vampires
-      .map(
-        (v,i) => (
-          <VampireList 
-            name={v.name}
-            title={v.title}
-            nationality={v.nationality}
-            home={v.home}
-            creator={v.creator}
-            appearance={v.appearance}
-            actor={v.actor}
-            key={`i-${i}`}
-            clickItem={() => this.editVampire(v,i)}
-            removeItem={e => {e.stopPropagation();
-              this.deleteVampire(i)}}
-          />
-      ));
+    // const vampireList = this.state.vampires
+    //   .map(
+    //     (v,i) => (
+    //       <VampireList 
+    //         name={v.name}
+    //         title={v.title}
+    //         nationality={v.nationality}
+    //         home={v.home}
+    //         creator={v.creator}
+    //         appearance={v.appearance}
+    //         actor={v.actor}
+    //         key={`i-${i}`}
+    //         clickItem={() => this.editVampire(v,i)}
+    //         removeItem={e => {e.stopPropagation();
+    //           this.deleteVampire(i)}}
+    //         filterValue={this.refs.query.value}
+    //       />
+    //   ));
 
     const newVampireForm = (this.state.makeNewVampire || this.state.vampire) &&
       <NewVampire
@@ -101,13 +104,14 @@ class App extends Component {
           <div className="child">In Media</div>
           <div className="child">Famous</div>
           <div className="child">
-            <form onSubmit={e => this.filterVampires(e)}>
+            <form onSubmit={e => this.filterVampires(e)}
+            >
               <input 
                 placeholder='Name, nationality, etc.'
-                value={this.state.inputValue} 
+                //value={this.state.inputValue} 
                 ref='query'
                 name='search'
-                onChange={(e) => this.handleChange(e, 'inputValue')}
+                // onChange={(e) => this.handleChange(e, 'inputValue')}
               />
               <Button type='submit'>Search</Button>
             </form>
@@ -121,7 +125,13 @@ class App extends Component {
 
             <h2>Featured Vampires</h2>
             
-            <div className='the-vampires'><VampireList filterValue= {this.state.inputValue}/></div>
+            <div className='the-vampires'>
+              <VampireList 
+                vampires={this.state.vampires} 
+                deleteVampire={this.deleteVampire} 
+                editVampire={this.editVampire}
+              />
+            </div>
 
             <br />
 
@@ -146,7 +156,7 @@ class App extends Component {
             {
               (!this.state.vampire || this.state.makeNewVampire) &&
               <ul className='vampire-list'>
-                {vampireList}
+                {/* {vampireList} */}
               </ul>
             }
               {/* <NewVampire
@@ -162,13 +172,21 @@ class App extends Component {
         </div>
 
         <div className='content-body'>
-                <div className='draculaIpsum'>
-                  <Draculipsum />
-                </div>
+          <div className='draculaIpsum'>
+            <h2>Featured Passage</h2>
+            <h3>"Dracula" by Bram Stoker</h3>
+            <Draculipsum />
+          </div>
         </div>
-                            {/* ****extra component (2)**** */}
                             {/* ****external web api**** (2) */}
 
+        <div className='content-body'>
+          <div className='featured-media'>
+          <h2>Featured Media</h2>
+            <FeaturedMedia />
+          </div>
+        </div>
+                            {/* ****external web api**** (2) */}
 
 
         <div className="footer-container">
@@ -227,7 +245,7 @@ class App extends Component {
     });
   }
   
-  updateVampire(e, vampire) {
+  editVampire(e, vampire) {
     return axios.patch('/vampires/' + this.state.vampireIndex, vampire)
       .then(response => {
         const vampires = this.state.vampires.slice();
@@ -242,20 +260,21 @@ class App extends Component {
       })
   }
   
-  deleteVampire(index) {
-    axios.delete('/vampires/' + index)
-      .then(() => {
-        this.setState({
-          vampires: this.state.vampires.filter((c, i) => i != index),
-        });
-      });
-  }
+  // deleteVampire(index) {
+  //   axios.delete('/vampires/' + index)
+  //     .then(() => {
+  //       this.setState({
+  //         vampires: this.state.vampires.filter((c, i) => i !== index),
+  //       });
+  //     });
+  // }
   
   filterVampires(e) {
     e.preventDefault();
     
     axios.get(`/vampires?search=${this.refs.query.value}`)
       .then(response => {
+        console.log(response.data);
         this.setState({
           vampires: response.data,
         });
@@ -266,7 +285,27 @@ class App extends Component {
   }
 
 
+  deleteVampire=(id)=>{
+    axios.delete('/vampires/' + id)
+    .then((response) => {
+      this.setState({vampires: response.data})
+    })
+  }
 
+  // editVampire=(id)=>{
+  //   return axios.patch('/vampires' + this.state.vampireIndex, vampire)
+  //   .then((response) => {
+  //     const vampires = this.state.vampires.slice();
+
+  //     vampires[this.state.vampireIndex] = response.data;
+
+  //     this.setState({
+  //       vampire: null,
+  //       vampireIndex: -1,
+  //       vampires,
+  //     });
+  //   })
+  // }
 
 
 

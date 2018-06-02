@@ -7,13 +7,13 @@ const app = express();
 const vampires = [
     {
         name: 'Dracula',
+        // url: 'https://vampiremaman.files.wordpress.com/2012/10/75833.jpg'
         title: 'Count, Vampire King',
         nationality: 'Székely',
         home: 'Transylvania',
         creator: 'Bram Stoker',
         appearance: "Dracula",
         actor: 'Bela Lugosi, Christopher Lee, Luke Evans',
-        // url: './images/bela dracula.jpg'
     },
     {
         name: 'Lestat de Lioncourt',
@@ -55,7 +55,7 @@ const vampires = [
         actor: 'Ryoutarou Okiayu, Yuri Lowenthal',
 
     },
-],
+]
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -69,17 +69,23 @@ app.use(express.static(__dirname + '/../build'));
 
 app.get('/vampires', (req, res) => {
                                 // express GET point (4, req)
-    const vampireList = vampires.filter(vampire => {
-        const search = req.query.search.toLowerCase()
-        return vampire.name.includes(search) ||
-            vampire.title.toLowerCase().includes(search) ||
-            vampire.nationality.toLowerCase().includes(search) ||
-            vampire.home.toLowerCase().includes(search) ||
-            vampire.creator.toLowerCase().includes(search) ||
-            vampire.appearance.toLowerCase().includes(search) ||
-            vampire.actor.toLowerCase().includes(search);
-    })
-    res.send(vampireList);
+    console.log('it is here')
+    console.log(req.query.search)
+    if(req.query.search !== undefined){
+        const vampireList = vampires.filter(vampire => {
+            const search = req.query.search.toLowerCase()
+            return vampire.name.includes(search) ||
+                vampire.title.toLowerCase().includes(search) ||
+                vampire.nationality.toLowerCase().includes(search) ||
+                vampire.home.toLowerCase().includes(search) ||
+                vampire.creator.toLowerCase().includes(search) ||
+                vampire.appearance.toLowerCase().includes(search) ||
+                vampire.actor.toLowerCase().includes(search);
+        })
+        res.send(vampireList);
+    } else {
+        res.send(vampires);
+    }
 });
 
 app.post('/vampires', (req, res) => {
@@ -96,15 +102,16 @@ app.patch('/vampires/:id', (req, res) => { // or PUT
     
     vampires[id] = vampire;
     
-    res.send(vampire);
+    res.send(vampires);
 });
 
 app.delete('/vampires/:id', (req, res) => {
     const { id } = req.params;
     
     const removedVampire = vampires.splice(id, 1);
-    
-    res.sendStatus(204);
+
+    res.send(vampires);
+
 });
                             // full CRUD? (4)
 
